@@ -1,0 +1,651 @@
+https://www.youtube.com/watch?v=HKJDLXsTr8A
+tailwind-css
+
+C:\xampp\htdocs\laravel_projects_demos
+
+composer create-project laravel/laravel tubeblog
+
+cd tubeblog
+
+composer require laravel-frontend-presets/tailwindcss --dev
+
+php artisan ui tailwindcss --auth
+
+npm remove laravel-mix
+
+npm install laravel-mix --save-dev
+
+npm insatll cross-env --save-dev
+
+npm run watch
+
+****controller PagesController
+php artisan make:controller PagesController
+
+and add: public function index()
+    {
+        return view('index');
+    }
+
+add inside routes:
+	Route::get('/', [PagesController::class, 'index'] );
+add inside routes:
+	use App\Http\Controllers\PagesController;
+
+****controller PostController + model Post;
+php artisan make:controller PostController --resource
+
+php artisan make:model Post
+
+add to the routes:
+  Route::resource('/blog', [PostController::class] );
+	
+use App\Http\Controllers\PostController;
+
+***layouts
+obpen app.blade.php in wiew\layouts
+add to the end </header>
+
+        <div>
+            @yield('content')
+        </div>
+
+        <div>
+            @include('layouts.footer')
+        </div>
+
+    </div>
+
+
+create booter.blade.php
+
+php artisan serve
+
+htttps://cdn.pixabay.com/photo/2017/07/31/23/45/pen-2562078_960_720.jpg
+
+*** frontend
+text-xl velkost,
+ text-gray-700 sedost,
+ pt-8 medzera pod ktoru je tex umiestneny
+ pb-10 medzera pod odstavcom textu
+ leading-8  medzera medzi riadkami,
+ font-light tlstot textu.
+
+*** Calling CFSR method
+
+Create
+/blog/create
+
+Read
+/blog
+
+Update - PUT or PATCH
+/blog/{slug}
+
+Delete - DELETE
+/blog/{id}
+
+Show - GET
+/blog/{id}
+
+Edit - GET
+/blog/{id}/edit
+
+
+	DATABASE
+***
+php artisan make:migration posts
+
+Go to migrations and open posts.php and add to the public function up()
+public function up()
+    {
+        Schema::create('posts', function(Blueprint $table){
+            $table->increments('id');
+            $table->string('slug');
+            $table->string('title');
+            $table->longText('description');
+            $table->string('image_path');
+            $table->timestamps();
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users');
+        });
+    }
+
+php artisan migrate
+
+- you must register fist user for user id..
+- add first post to the tb_posts
+
+INSERT INTO `posts` (`id`, `slug`, `title`, `description`, `image_path`, `created_at`, `updated_at`, `user_id`) VALUES (NULL, 'first-post', 'First Post', 'Description firest post', 'test', NULL, NULL, '1');
+
+***
+Go to PostController and add:
+use App\Models\Post;
+
+public function index()
+    {
+        $post = Post::all(); //- to see if its working in /blog
+        dd($post); //- to see if its working in /blog
+        return view('blog.index');
+    }
+
+public function index()
+    {
+        //$post = Post::all(); //- to see if its working in /blog
+        //dd($post); //- to see if its working in /blog
+        return view('blog.index')
+            ->with('posts', Post::orderBy('updated_at', 'DESC')->get());
+    }
+
+Open blog/index.blade.php 
+add:   {{ $posts }}.... after tthis..
+ @section('content')
+<div class="w-4/5 m-auto text-center">
+	<div class="py-15 border-b border-gray-200">
+		<h1 class="text-6xl">
+			Blog Posts
+		</h1>
+	</div>
+</div>
+
+{{ $posts }}
+- open /blog page to see 
+Open blog/index.blade.php 
+add:
+
+@foreach ($posts as $post)
+<div class="sm:grid grid-cols-2 gap-20 w-4/5 mx-auto py-15 border-b border-gray-200">
+	<div>
+		<img src="https://cdn.pixabay.com/photo/2020/01/08/03/56/man-4749237_960_720.jpg" width="700" alt="">
+	</div>
+	<div>
+		<h2 class="text-gray-700 font-bold text-5xl pb-4">
+			{{ $post->title }}
+		</h2>
+
+		<span class="text-gray-500">
+			By <span class="font-bold italic text-gray-800">Code With Dary</span>, 1 day ago
+		</span>
+
+		<p class="text-xl text-gray-700 pt-8 pb-10 leading-8 font-light">
+			{{ $post->description }}
+		</p>
+
+		<a href="/blog/{{ $post->slug }}" class="uppercase bg-blue-500 text-gray-100 text-lg font-extrabold py-4 px-8 rounded-3xl">
+			Keep Reading
+		</a>
+	</div>
+</div>
+
+@endforeach
+
+
+
+
+*****Onee to many relationship
+Models\Post.php and add
+
+class Post extends Model
+{
+    use HasFactory;
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+        // so one post belongs to one user.
+    }
+}
+
+Models\User.php and add before eneding}:
+
+public function post()
+    {
+        return $this->hasMany(Post::class);
+        // so one user has many Posts
+    }
+}
+
+*** change 
+<span class="text-gray-500">
+			By <span class="font-bold italic text-gray-800">{{ $post->user->name }}</span>, Created on {{ date('jS M Y', strtotime($post->updated_at)) }}
+		</span>
+
+
+**** 
+@if (Auth::check())
+	<div class="pt-15 w-4/5 m-auto">
+		<a
+			href="\blog\create"
+			class="bg-blue-500 uppercase bg-transparent text-gray-100 text-xs font-extrabold py-3 px-5 rounded-3xl">
+			Create post
+		</a>
+	</div>
+@endif
+
+
+***/create section 
+- create new file: wievs/blog/create.blade.php and write in them: CREATE
+- open PostController and write:
+	public function create()
+    {
+        return view('blog.create');
+    }
+- save and refresh page
+- copy everything from blog/inde.blade.php and paste it to the blog/create.blade.php
+- dell loop section
+- or copy this to create.blade.php:
+	@extends('layouts.app')
+
+@section('content')
+<div class="w-4/5 m-auto text-left">
+	<div class="py-15 ">
+		<h1 class="text-6xl">
+			Create Posts
+		</h1>
+	</div>
+</div>
+
+<div class="w-4/5 m-auto pt-20">
+	<form
+		action="/blog"
+		method="POST"
+		enctype="multipart/form-data">
+		@csrf  <!-- cross side request sugrery? -->
+		
+		<input
+			type="text"
+			name="title"
+			placeholder="Title..."
+			class="bg-transparent block border-b-2 w-full h-20 text-6xl outline-none">
+
+		<textarea
+			name="description"
+			placeholder="Description..."
+			class="py-20 bg-transparent block border-b-2 w-full h60 text-xl outline-none"
+			></textarea>
+
+		<div class="bg-gray-lighter pt-15">
+			<label class="w-44 flex flex-col items-center px-2 py-3 bg-white-rounded-lg shadow-lg tracking-wide uppercase border border-blue cursor-pointer">
+				<span class="mt-2 text-base leading-normal">
+					Select a file
+				</span>
+				<input
+					type="file"
+					name="image"
+					class="hidden">
+
+			</label>
+		</div>
+
+		<button
+			type="submit"
+			class="uppercase mt-15 bg-blue-500 text-gray-100 text-lg font-extrabold py-4 px-8 rounded-3xl">
+				Submit Post
+		</button>
+	</form>
+</div>
+
+@endsection
+
+
+- go to PostController.php and add:
+	    public function store(Request $request)
+    {
+        //
+        dd($request);
+    }
+	
+- try to Sumbmit post with some text and see in browser.. 
+
+- validate to:
+	 public function store(Request $request)
+    {
+        // dd($request);
+        $request->validate([
+            'title' => 'required',
+            'description' => 'required',
+            'image' => 'required|mimes:jpg,png,jpeg|max:5048'
+        ]);
+
+        $newImageName = uniqid() . '-' . $request->title . '.' . $request->image->extension();
+
+        dd($newImageName);
+
+    }
+it returns "6286c76e03368-This is my new post.jpg"
+
+- add ERROR messager to blog\create.blade.php:
+	@if ($errors->any())
+	<div class="w-4/5 m-auto">
+		<ul>
+			@foreach ($errors->all() as $error)
+				<li class="w-1/5 mb-4 text-gray-50 bg-red-700 rounded-2x py-4" >
+					{{ $error }}
+				</li>
+			@endforeach
+		</ul>
+	</div>
+@endif
+
+- Move image into our Public forder add:
+	$request->image->move(public_path('images'), $newImageName);
+// it folder not exist it will be create new one for us :)
+
+****
+composer require cviebrock/eloquent-sluggable
+open Models/post.php add:
+
+use Cviebrock\EloquentSluggable\Sluggable;
+
+use HasFactory;
+    use Sluggable;
+
+public function sluggable(): array 
+    {
+        return 
+            [
+                'slug'=>
+                [
+                    'source' => 'title'
+                ]
+            ];
+    }
+
+- PostController.php add:
+use Cviebrock\EloquentSluggable\Services\SlugService;
+
+and inside public function store(Request $request) add:
+
+$slug = SlugService::createSlug(Post::class, 'slug', $request->title);
+        //(model name, column name, title )
+
+        dd($slug);
+	
+
+- add tothe models/post 
+protected $fillable = ['title','slug','description','image_path','user_id'];
+
+-add tothe postcontrooler:
+Post::create([
+            'title'=>$request->input('title'),
+            'description'=>$request->input('description'),
+            'slug'=> $slug,
+            'image_path' => $newImageName,
+            'user_id'=> auth()->user()->id
+        ]);
+
+return redirect('/blog')
+	->with('message', 'Your post has been added!');
+
+add index.blade:
+	@if(session()->has('message'))
+	<div class="w-4/5 m-auto mt-10 pl-2">
+		<p class="w-2/6 mb-4 text-gray-50 bg-green-500 rounded-2xl py-4">
+			{{ session()->get('message') }}
+		</p>
+	</div>
+@endif
+
+
+*****show details in blog in page
+post controller:
+   inside public function store(Request $request);
+* @param  string  $slug
+    * //@param  int  $id
+
+and 
+ public function show($slug)
+    {
+        return view('blog.show')
+            ->with('post', Post::where('slug', $slug)->first());
+    }
+
+- create show.blade.php:
+	@extends('layouts.app')
+
+@section('content')
+<div class="w-4/5 m-auto text-left">
+	<div class="py-15 ">
+		<h1 class="text-6xl">
+			{{ $post->title }}
+		</h1>
+	</div>
+</div>
+
+
+<div class="w-4/5 m-auto pt-20">
+	<span class="text-gray-500">
+		By <span class="font-bold italic text-gray-800">{{ $post->user->name }}</span>, Created on {{ date('jS M Y', strtotime($post->updated_at)) }}
+	</span>
+
+	<p class="text-xl text-gray-700 pt-8 pb-10 leading-8 font-light">
+		{{ $post->description }}
+
+	</p>
+	
+</div>
+
+-
+    public function show($slug)
+    {
+        return view('blog.show')
+            ->with('post', Post::where('slug', $slug)->first());
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *   @param  string  $slug
+     * //@param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+@endsection
+
+
+
+
+*****Update post:
+-in postController:
+public function edit($slug)
+    {
+        return view('blog.edit')
+            ->with('post', Post::where('slug', $slug)->first());
+    }
+- create new file edit.blade.php add:
+
+-add Edit Button to index.blade.php:
+		@if(isset(Auth::user()->id) && Auth::user()->id == $post->user_id)
+		<!-- if user is looge id && if user id that is logged in == $post->user_id -->
+			<span class="float-right">
+				<a 
+					href="/blog/{{ $post->slug }}/edit"
+					class="text-gray-700 italic hover:text-gray-900 pb-1 border-b-2">
+					Edit
+				</a>
+			</span>
+		@endif
+
+- copy everzthing from create page to the edit page.blade.php
+-add new methot put method:
+@csrf  <!-- cross side request sugrery? -->
+		@method('PUT')
+
+
+del in input placeholder="Title..." and add value="{{ $post->title }}"
+ <textarea  {{ $post->description }}
+
+- prepair edit PostController:
+public function edit($slug)
+    {
+        return view('blog.edit')
+            ->with('post', Post::where('slug', $slug)->first());
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * //@param  int  $id
+
+    * @param  string  $slug
+     * @return \Illuminate\Http\Response
+     */
+
+PostController: Update function 
+
+    public function update(Request $request, $slug)
+    {
+        //
+	$request->validate([
+            'title' => 'required',
+            'description' => 'required',
+        ]);
+	
+        Post::where('slug', $slug)
+            ->update([
+                'title'=>$request->input('title'),
+                'description'=>$request->input('description'),
+                'slug'=> $slug,
+                'user_id'=> auth()->user()->id
+            ]);
+
+        return redirect('blog')
+            ->with('message', 'Your post has been updated!');
+    }
+
+- delete div for image in edit.blade.php
+
+
+PostController: destroy function: 
+public function destroy($id)
+    {
+        $post = Post::where('slug', $slug);
+        $post->delete();
+
+        return redirect('/blog')
+            ->with('message', 'Your post has been deleted!')
+    }
+
+
+-add button blog/index.blade.php between edit button:
+
+<span class="float-right">
+				<form
+					action="/blog/{{ $post->slug }}"
+					method="POST">
+					@csrf
+					@method('delete')
+
+					<button 
+						class="text-red-500 pr-3"
+						type="submit">
+						Delete
+					</button>
+
+				</form>
+			</span>
+
+
+**** to use only for auth user... walidation that no login user cant add post..
+
+class PostController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth', ['except' => ['index','show']]);
+        // method that user can access withou login.
+    }
+
+*** redirect after login
+ go to Providers/RouteServiceProvider.php  change:
+class RouteServiceProvider extends ServiceProvider
+{
+    /**
+     * The path to the "home" route for your application.
+     *
+     * This is used by Laravel authentication to redirect users after login.
+     *
+     * @var string
+     */
+   // public const HOME = '/home';
+//public const HOME = '/blog';
+public const HOME = '/';
+
+***change picture.. 
+
+@foreach ($posts as $post)
+<div class="sm:grid grid-cols-2 gap-20 w-4/5 mx-auto py-15 border-b border-gray-200">
+	<div>
+		<img src="{{ asset('images/' . $post->image_path) }}" width="700" alt="">
+		<!-- <img src="https://cdn.pixabay.com/photo/2020/01/08/03/56/man-4749237_960_720.jpg" width="700" alt=""> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
